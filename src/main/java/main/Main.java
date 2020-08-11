@@ -5,7 +5,6 @@ import org.hibernate.jpa.HibernatePersistenceProvider;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
 import javax.persistence.spi.PersistenceProvider;
 import javax.persistence.spi.PersistenceUnitInfo;
 import java.util.HashMap;
@@ -34,8 +33,20 @@ public class Main {
 
         em.persist(person);
         em.getTransaction().commit();
-        em.close();
 
+        System.out.println("----- consulta -----");
+
+        //Según la formación estás dos sentencias deberían provocar outputs diferentes pero no es así
+        //Si que encontramos diferencia cuando el id no existe. En el caso de getReference el error da cuadno vamos a acceder al campo name
+        //En el caso de find el error da cuando intentamos acceder al dni
+        Person person1 = em.getReference(Person.class, "123456789A");
+        //Person person1 = em.find(Person.class, "123456789A");
+
+        System.out.println(person1.getDni());
+        System.out.println(person1.getName());
+        System.out.println(person1.getClass().getName());
+
+        em.close();
         emf.close();
     }
 }
