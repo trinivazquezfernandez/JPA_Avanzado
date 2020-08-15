@@ -1,5 +1,6 @@
 package main;
 
+import domain.Car;
 import domain.Person;
 import org.hibernate.jpa.HibernatePersistenceProvider;
 
@@ -27,24 +28,40 @@ public class Main {
 
         em.getTransaction().begin();
 
-        Person person = new Person();
-        person.setDni("123456789A");
-        person.setName("María");
+        Person ana = new Person();
+        ana.setName("Ana");
 
-        em.persist(person);
+        Car car = new Car();
+        car.setModel("Suzuki");
+        car.setOwner(ana);
+
+        Person juan = new Person();
+        juan.setName("Juan");
+        juan.getCars().add(car);//Esto provoca una incoherencia. Vemos que al hacer commit ignora este add
+
+        em.persist(ana);
+        em.persist(car);
+        em.persist(juan);
+
+        em.refresh(car);
+        em.refresh(juan);
+
+        System.out.println("propietario " + car.getOwner().getName());
+        System.out.println("coches juan " + juan.getCars().size());
+
+        //Este c aso solo fucnina si especificamos como estrategia de persistencia PERSIST en la entidad Car
+        Person trini = new Person();
+        trini.setName("Trini");
+        Car alfa = new Car();
+        alfa.setModel("Alfa");
+        alfa.setOwner(trini);
+
+        em.persist(alfa);
+
+        car.setOwner(new Person("Antonio"));
+        em.merge(car);
+
         em.getTransaction().commit();
-
-        System.out.println("----- consulta -----");
-
-        //Según la formación estás dos sentencias deberían provocar outputs diferentes pero no es así
-        //Si que encontramos diferencia cuando el id no existe. En el caso de getReference el error da cuadno vamos a acceder al campo name
-        //En el caso de find el error da cuando intentamos acceder al dni
-        Person person1 = em.getReference(Person.class, "123456789A");
-        //Person person1 = em.find(Person.class, "123456789A");
-
-        System.out.println(person1.getDni());
-        System.out.println(person1.getName());
-        System.out.println(person1.getClass().getName());
 
         em.close();
         emf.close();
