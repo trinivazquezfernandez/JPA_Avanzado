@@ -9,6 +9,7 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.spi.PersistenceProvider;
 import javax.persistence.spi.PersistenceUnitInfo;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Main {
@@ -49,7 +50,7 @@ public class Main {
         System.out.println("propietario " + car.getOwner().getName());
         System.out.println("coches juan " + juan.getCars().size());
 
-        //Este c aso solo fucnina si especificamos como estrategia de persistencia PERSIST en la entidad Car
+        //Este caso solo fucnina si especificamos como estrategia de persistencia PERSIST en la entidad Car
         Person trini = new Person();
         trini.setName("Trini");
         Car alfa = new Car();
@@ -61,9 +62,30 @@ public class Main {
         car.setOwner(new Person("Antonio"));
         em.merge(car);
 
+        flushOrder(em);
+
         em.getTransaction().commit();
 
         em.close();
         emf.close();
+    }
+
+    private static void flushOrder(EntityManager em){
+        //flush se ejecuta:
+        //Cuando invocamos un commit
+        //Cuando lo invocamos de forma explicita: em.flush()
+        //Antes de ejecutar una consulta en la base de datos
+        //El orden de ejecucucion de las operaciones de base de datos es:
+        //Insert
+        //Update
+        //Delete
+        //Select
+        em.persist(new Person("Toni"));
+
+
+        List<Person> persons = em.createQuery("select p from Person p").getResultList();
+        for (Person p:persons) {
+            System.out.println(p.getName());
+        }
     }
 }
